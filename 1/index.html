@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>反诈防线 · 慧眼识骗闯关</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+  :root{
+    --bg:#0C1420;
+    --bg-2:#131E2E;
+    --card:#1A2738;
+    --card-2:#213146;
+    --line:#2A3A4F;
+    --line-soft:#22303F;
+    --text:#E8EEF4;
+    --text-2:#93A4B8;
+    --text-3:#6B7D92;
+    --green:#2EBD85;
+    --green-dim:#173B2E;
+    --red:#E5484D;
+    --red-dim:#3E1E22;
+    --amber:#F5A524;
+    --cyan:#5BC8D8;
+    --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Noto Sans SC",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+
+  /* ============ 视图切换 ============ */
+  .view{display:none;min-height:100vh;}
+  .view.active{display:block;}
+
+  /* ============ 首页 Hero ============ */
+  .hero{
+    padding:64px 0 40px;
+    position:relative;
+    border-bottom:1px solid var(--line-soft);
+    background:
+      radial-gradient(1200px 400px at 80% -10%, rgba(91,200,216,.08), transparent 60%),
+      radial-gradient(900px 360px at 10% 0%, rgba(46,189,133,.06), transparent 55%);
+  }
+  .hero .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;letter-spacing:.18em;color:var(--cyan);
+    border:1px solid rgba(91,200,216,.35);border-radius:999px;
+    padding:6px 14px;margin-bottom:24px;
+  }
+  .hero h1{
+    font-family:"Noto Serif SC",serif;font-weight:900;
+    font-size:clamp(34px,6vw,54px);line-height:1.18;letter-spacing:.02em;
+  }
+  .hero h1 .accent{color:var(--green);}
+  .hero p.lead{
+    margin-top:18px;max-width:580px;color:var(--text-2);
+    font-size:16px;font-weight:300;
+  }
+  .hero-actions{margin-top:32px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+  .btn-primary{
+    background:var(--green);color:#062118;font-weight:700;font-size:16px;
+    padding:15px 30px;border-radius:12px;letter-spacing:.05em;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(46,189,133,.28);}
+  .btn-ghost{
+    background:transparent;color:var(--text-2);border:1px solid var(--line);
+    padding:15px 26px;border-radius:12px;font-size:15px;
+  }
+  .btn-ghost:hover{color:var(--text);border-color:var(--text-3);}
+  .best-line{margin-left:4px;color:var(--text-3);font-size:14px;}
+  .best-line strong{color:var(--amber);font-weight:700;}
+
+  .mode-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+  .mode-tag{
+    font-size:13px;color:var(--text-2);border:1px solid var(--line);
+    border-radius:10px;padding:8px 13px;display:flex;gap:8px;align-items:center;
+  }
+  .mode-tag svg{flex:none;}
+  .mode-tag b{color:var(--text);font-weight:500;}
+
+  /* ============ 口诀区 ============ */
+  .section{padding:48px 0;}
+  .section h2{font-family:"Noto Serif SC",serif;font-size:24px;font-weight:700;margin-bottom:6px;}
+  .section .sub{color:var(--text-2);font-size:14px;margin-bottom:28px;}
+  .maxims-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
+  .maxim{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;display:flex;gap:14px;align-items:flex-start;
+  }
+  .maxim .num{
+    font-family:"Noto Serif SC",serif;font-size:22px;font-weight:900;color:var(--cyan);
+    flex:none;line-height:1;
+  }
+  .maxim h3{font-size:16px;font-weight:700;margin-bottom:4px;}
+  .maxim p{font-size:13px;color:var(--text-2);}
+
+  /* ============ 图鉴区 ============ */
+  .codex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+  .codex-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;display:flex;flex-direction:column;gap:10px;
+  }
+  .codex-card .head{display:flex;align-items:center;gap:12px;}
+  .codex-card .icon{
+    width:40px;height:40px;border-radius:10px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--red-dim);color:var(--red);
+  }
+  .codex-card h3{font-size:16px;font-weight:700;}
+  .codex-card .feat{font-size:14px;color:var(--text-2);}
+  .codex-card .feat b{color:var(--text);font-weight:500;}
+  .codex-card .guard{
+    margin-top:auto;padding-top:12px;border-top:1px dashed var(--line);
+    font-size:13px;color:var(--green);display:flex;gap:8px;align-items:flex-start;
+  }
+  .codex-card .guard svg{flex:none;margin-top:3px;}
+
+  /* ============ 处置流程 ============ */
+  .steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;counter-reset:step;}
+  .step{
+    background:var(--bg-2);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;position:relative;
+  }
+  .step .step-no{
+    width:30px;height:30px;border-radius:50%;background:var(--card-2);color:var(--cyan);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;margin-bottom:12px;
+  }
+  .step h3{font-size:15px;font-weight:700;margin-bottom:6px;}
+  .step p{font-size:13px;color:var(--text-2);}
+
+  /* ============ 游戏视图 ============ */
+  .game-top{
+    position:sticky;top:0;z-index:10;
+    background:rgba(12,20,32,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .game-top .wrap{display:flex;align-items:center;gap:18px;padding:16px 20px;}
+  .brand-mini{font-family:"Noto Serif SC",serif;font-weight:700;font-size:16px;}
+  .hud{display:flex;gap:18px;margin-left:auto;align-items:center;flex-wrap:wrap;}
+  .hud .stat{font-size:13px;color:var(--text-2);}
+  .hud .stat strong{color:var(--text);font-size:16px;font-weight:700;}
+  .hud .stat .combo-on{color:var(--amber);}
+  .hearts{display:flex;gap:5px;}
+  .heart{width:18px;height:18px;}
+  .heart.lost{opacity:.22;}
+
+  .timer-track{height:5px;border-radius:999px;background:var(--bg-2);overflow:hidden;margin-bottom:22px;}
+  .timer-fill{height:100%;border-radius:999px;background:var(--cyan);width:100%;transition:width .1s linear;}
+  .timer-fill.low{background:var(--red);}
+
+  .stage{padding:32px 0 60px;}
+  .progress-track{height:6px;border-radius:999px;background:var(--bg-2);overflow:hidden;margin-bottom:24px;}
+  .progress-fill{height:100%;background:var(--green);border-radius:999px;width:0;transition:width .3s ease;}
+
+  .msg-card{
+    background:var(--card);border:1px solid var(--line);border-radius:20px;
+    overflow:hidden;max-width:640px;margin:0 auto;animation:fadeUp .25s ease;
+  }
+  .msg-meta{display:flex;align-items:center;gap:10px;padding:16px 22px;border-bottom:1px solid var(--line-soft);}
+  .channel-tag{font-size:12px;color:var(--cyan);border:1px solid rgba(91,200,216,.3);border-radius:8px;padding:3px 10px;}
+  .mode-tag-game{font-size:12px;color:var(--amber);border:1px solid rgba(245,165,36,.35);border-radius:8px;padding:3px 10px;}
+  .scene-tag{font-size:13px;color:var(--text-2);}
+  .msg-body{padding:26px 22px;}
+  .msg-body .bubble{
+    background:var(--card-2);border-left:3px solid var(--line);
+    border-radius:4px 14px 14px 14px;padding:18px 20px;font-size:16px;color:var(--text);
+  }
+  .msg-body .bubble .quote{color:var(--text-2);font-size:13px;display:block;margin-bottom:8px;}
+
+  .verdict{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;}
+  .verdict button{
+    min-height:56px;border-radius:14px;font-size:16px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .btn-fraud{background:var(--red-dim);color:var(--red);border:1px solid rgba(229,72,77,.4);}
+  .btn-fraud:hover{background:#4A2227;transform:translateY(-1px);}
+  .btn-safe{background:var(--green-dim);color:var(--green);border:1px solid rgba(46,189,133,.4);}
+  .btn-safe:hover{background:#1E4A39;transform:translateY(-1px);}
+  .verdict button:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+  /* 找破绽选项 */
+  .spot-hint{font-size:13px;color:var(--text-2);margin:22px 0 12px;}
+  .spot-options{display:grid;gap:10px;}
+  .spot-chip{
+    text-align:left;background:var(--card-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-size:15px;color:var(--text);display:flex;gap:12px;align-items:center;
+    transition:border-color .12s ease, background .12s ease;min-height:48px;
+  }
+  .spot-chip .box{
+    width:20px;height:20px;border-radius:6px;border:1.5px solid var(--text-3);flex:none;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .spot-chip.selected{border-color:var(--amber);background:#2A2A20;}
+  .spot-chip.selected .box{background:var(--amber);border-color:var(--amber);}
+  .spot-chip.selected .box svg{display:block;}
+  .spot-chip .box svg{display:none;}
+  .spot-chip:disabled{cursor:default;}
+  .spot-chip.hit-right{border-color:var(--green);background:var(--green-dim);}
+  .spot-chip.hit-wrong{border-color:var(--red);background:var(--red-dim);}
+  .spot-submit{margin-top:18px;width:100%;min-height:52px;border-radius:12px;background:var(--cyan);color:#06222A;font-weight:700;font-size:15px;}
+  .spot-submit:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* 反馈面板 */
+  .feedback{max-width:640px;margin:22px auto 0;border-radius:16px;padding:20px 22px;display:none;border:1px solid;}
+  .feedback.show{display:block;animation:fadeUp .25s ease;}
+  .feedback.good{background:var(--green-dim);border-color:rgba(46,189,133,.35);}
+  .feedback.bad{background:var(--red-dim);border-color:rgba(229,72,77,.35);}
+  .feedback .fb-title{font-weight:700;font-size:16px;margin-bottom:8px;display:flex;gap:8px;align-items:center;}
+  .feedback.good .fb-title{color:var(--green);}
+  .feedback.bad .fb-title{color:var(--red);}
+  .feedback .fb-reason{font-size:14px;color:var(--text);margin-bottom:6px;}
+  .feedback .fb-tip{font-size:13px;color:var(--text-2);}
+  .feedback .fb-tip b{color:var(--amber);font-weight:500;}
+  .feedback .next-row{margin-top:16px;display:flex;justify-content:flex-end;}
+  .btn-next{background:var(--card-2);color:var(--text);border:1px solid var(--line);padding:11px 22px;border-radius:10px;font-size:14px;font-weight:500;}
+  .btn-next:hover{border-color:var(--text-3);}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  /* ============ 结算视图 ============ */
+  .result{padding:64px 0;}
+  .result-panel{max-width:560px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:40px 32px;text-align:center;}
+  .rank-badge{width:84px;height:84px;margin:0 auto 20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--bg-2);border:1px solid var(--line);}
+  .result h2{font-family:"Noto Serif SC",serif;font-size:28px;font-weight:900;margin-bottom:8px;}
+  .result .rank-desc{color:var(--text-2);font-size:15px;margin-bottom:28px;}
+  .score-row{display:flex;justify-content:center;gap:40px;margin-bottom:28px;flex-wrap:wrap;}
+  .score-row .num{font-size:30px;font-weight:700;}
+  .score-row .num.green{color:var(--green);}
+  .score-row .num.amber{color:var(--amber);}
+  .score-row .lbl{font-size:13px;color:var(--text-2);}
+  .result-actions{display:flex;flex-direction:column;gap:12px;}
+
+  .review{max-width:640px;margin:32px auto 0;text-align:left;}
+  .review h3{font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text-2);}
+  .review-item{background:var(--bg-2);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px;}
+  .review-item .ri-title{font-size:14px;color:var(--text);margin-bottom:6px;}
+  .review-item .ri-reason{font-size:13px;color:var(--text-2);margin-bottom:4px;}
+  .review-item .ri-tip{font-size:13px;color:var(--green);}
+  .review-empty{font-size:14px;color:var(--text-3);text-align:center;padding:18px 0;}
+
+  /* 页脚 */
+  footer{border-top:1px solid var(--line-soft);padding:24px 0;text-align:center;color:var(--text-3);font-size:13px;}
+  footer b{color:var(--text-2);font-weight:500;}
+
+  @media (max-width:560px){
+    .verdict{grid-template-columns:1fr;}
+    .hud{gap:12px;}
+    .game-top .wrap{flex-wrap:wrap;}
+    .score-row{gap:24px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 视图：首页 ============ -->
+<section class="view active" id="view-home">
+  <div class="hero">
+    <div class="wrap">
+      <span class="eyebrow">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg>
+        全民反诈 · 互动闯关
+      </span>
+      <h1>反诈防线：<span class="accent">慧眼识骗</span><br>你能拦住几条骗局？</h1>
+      <p class="lead">短信、聊天、广告轮番弹来。既有“正常还是诈骗”的快速判断，也有让你亲手找出破绽的细辨关卡；在倒计时内守住防线，答错会给你讲清破绽在哪里。</p>
+      <div class="mode-tags">
+        <span class="mode-tag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg><b>真假判断</b> 两秒识别常规套路</span>
+        <span class="mode-tag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><b>火眼金睛</b> 逐条勾选危险信号</span>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-primary" id="btn-start">开始闯关</button>
+        <button class="btn-ghost" id="btn-codex">先看骗局图鉴</button>
+        <span class="best-line">历史最高分：<strong id="home-best">0</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="maxims">
+    <div class="wrap">
+      <h2>反诈四句诀</h2>
+      <p class="sub">记牢这四条，大多数骗局都递不到你面前。</p>
+      <div class="maxims-grid">
+        <div class="maxim"><span class="num">壹</span><div><h3>未知链接不点击</h3><p>短信、群聊里的陌生网址先核实，不凭一句催促就打开。</p></div></div>
+        <div class="maxim"><span class="num">贰</span><div><h3>陌生来电不轻信</h3><p>自称公检法、客服、领导的，挂断后走官方渠道回拨核实。</p></div></div>
+        <div class="maxim"><span class="num">叁</span><div><h3>个人信息不透露</h3><p>验证码、密码、银行卡号、证件号绝不告诉电话或聊天对象。</p></div></div>
+        <div class="maxim"><span class="num">肆</span><div><h3>转账汇款多核实</h3><p>凡是先垫资、先交钱、先充值的要求，一律先停一停。</p></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="codex">
+    <div class="wrap">
+      <h2>六类高发骗局图鉴</h2>
+      <p class="sub">记住特征与防范要点，闯关时你会更快识破它们。</p>
+      <div class="codex-grid" id="codex-grid"></div>
+    </div>
+  </div>
+
+  <div class="section" id="steps">
+    <div class="wrap">
+      <h2>万一已经被骗，按这四步处置</h2>
+      <p class="sub">越早止付，资金被追回的可能性越大。</p>
+      <div class="steps">
+        <div class="step"><div class="step-no">1</div><h3>立即停止操作</h3><p>不再按对方指引转账、下载 App 或共享屏幕，先保住剩余资金。</p></div>
+        <div class="step"><div class="step-no">2</div><h3>留存全部证据</h3><p>保存聊天记录、转账凭证、对方账号、收款方信息和可疑链接。</p></div>
+        <div class="step"><div class="step-no">3</div><h3>报警并咨询专线</h3><p>拨打 96110 反诈专线咨询，或直接拨打 110；同时联系银行挂失止付。</p></div>
+        <div class="step"><div class="step-no">4</div><h3>配合调查取证</h3><p>按民警要求做笔录、提交材料，跟进止付与冻结进展。</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="wrap">如遇可疑转账、索要验证码或屏幕共享要求，请先挂断并通过<b>官方渠道</b>核实；被骗后及时拨打 <b>96110</b> 咨询或报警。</div>
+  </footer>
+</section>
+
+<!-- ============ 视图：游戏 ============ -->
+<section class="view" id="view-game">
+  <div class="game-top">
+    <div class="wrap">
+      <span class="brand-mini">反诈防线</span>
+      <div class="hud">
+        <span class="stat">进度 <strong id="hud-progress">1/1</strong></span>
+        <span class="stat">得分 <strong id="hud-score">0</strong></span>
+        <span class="stat">连击 <strong id="hud-combo" class="combo-on">0</strong></span>
+        <span class="stat">防线 <span class="hearts" id="hud-hearts"></span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="wrap">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+
+      <div class="msg-card">
+        <div class="msg-meta">
+          <span class="channel-tag" id="meta-channel">短信</span>
+          <span class="mode-tag-game" id="meta-mode">真假判断</span>
+          <span class="scene-tag" id="meta-scene">场景</span>
+        </div>
+        <div class="msg-body">
+          <div class="bubble">
+            <span class="quote">收到的消息内容</span>
+            <span id="msg-text"></span>
+          </div>
+
+          <!-- 真假判断操作区 -->
+          <div class="verdict" id="verdict">
+            <button class="btn-fraud" id="btn-fraud">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
+              标记为诈骗
+            </button>
+            <button class="btn-safe" id="btn-safe">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>
+              判定为正常
+            </button>
+          </div>
+
+          <!-- 找破绽操作区 -->
+          <div id="spot-area" style="display:none;">
+            <p class="spot-hint">这条消息里藏着哪些危险信号？勾选全部可疑之处后提交。</p>
+            <div class="spot-options" id="spot-options"></div>
+            <button class="spot-submit" id="btn-spot-submit">提交判断</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback">
+        <div class="fb-title" id="fb-title"></div>
+        <div class="fb-reason" id="fb-reason"></div>
+        <div class="fb-tip" id="fb-tip"></div>
+        <div class="next-row"><button class="btn-next" id="btn-next">下一条</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 视图：结算 ============ -->
+<section class="view" id="view-result">
+  <div class="result">
+    <div class="wrap">
+      <div class="result-panel">
+        <div class="rank-badge" id="rank-badge"></div>
+        <h2 id="result-title">闯关完成</h2>
+        <p class="rank-desc" id="result-desc"></p>
+        <div class="score-row">
+          <div><div class="num green" id="result-score">0</div><div class="lbl">本局得分</div></div>
+          <div><div class="num" id="result-acc">0%</div><div class="lbl">正确率</div></div>
+          <div><div class="num amber" id="result-best">0</div><div class="lbl">历史最高</div></div>
+        </div>
+        <div class="result-actions">
+          <button class="btn-primary" id="btn-retry">再来一局</button>
+          <button class="btn-ghost" id="btn-home">返回首页</button>
+        </div>
+      </div>
+      <div class="review" id="review"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ==================== 数据：真假判断 ==================== */
+var JUDGE = [
+  {
+    channel:"短信", scene:"银行卡提醒", answer:"fraud",
+    text:"【XX银行】您的银行卡账户状态异常，请点击下方链接完成身份核验，逾期账户将被冻结。",
+    reason:"官方银行不会通过短信链接要求你填写身份信息、密码或验证码；此类链接多为钓鱼页面。",
+    tip:"防范：挂断后通过银行卡背面的官方客服电话或官方手机银行 App 自行核实，不要点短信里的链接。"
+  },
+  {
+    channel:"兼职广告", scene:"刷单日结", answer:"fraud",
+    text:"足不出户日赚 300+，点赞关注即可返利，先做小额任务，佣金秒到账。",
+    reason:"先给小额返利获取信任，随后以“连单任务”“垫资升级”为由诱导不断充值，是典型刷单返利骗局。",
+    tip:"防范：凡是“点赞刷单、垫付返利、轻松日赚”的兼职，一律不做；刷单本身违规。"
+  },
+  {
+    channel:"微信", scene:"自称领导", answer:"fraud",
+    text:"我是你领导，明天上午到我办公室一趟。另外有笔款项要先应急，你先转 5000 元，回头走报销。",
+    reason:"冒充领导、熟人先谈公事再借钱转账，是常见冒充类骗局；对方往往盗用头像昵称。",
+    tip:"防范：涉及转账、借款，务必通过当面或已知的电话渠道二次核实，不要仅凭聊天记录操作。"
+  },
+  {
+    channel:"电话", scene:"自称公安", answer:"fraud",
+    text:"我是公安局的，你名下账户涉嫌洗钱，现在需要把资金转入“安全账户”配合调查，不得告诉任何人。",
+    reason:"公检法机关不存在所谓“安全账户”，更不会要求转账汇款；要求保密、恐吓施压是核心特征。",
+    tip:"防范：遇到此类电话直接挂断，可拨打 96110 咨询核实。"
+  },
+  {
+    channel:"网购", scene:"订单退款", answer:"fraud",
+    text:"您的订单异常需要退款，添加客服 QQ，按指引开启屏幕共享，我们协助您完成理赔操作。",
+    reason:"主动联系退款、引导脱离平台、要求屏幕共享，会让对方看到你的验证码和支付信息。",
+    tip:"防范：退款只在购物 App 订单页内办理；绝不向陌生人开启屏幕共享，不透露验证码。"
+  },
+  {
+    channel:"投资群", scene:"导师带单", answer:"fraud",
+    text:"内部消息渠道，导师带单稳赚不赔，先充值小额体验，盈利后可随时提现。",
+    reason:"虚假投资平台由后台操控盈亏，前期让你小赚提现，大额投入后即无法取出。",
+    tip:"防范：陌生群里的“导师、专家、内部行情”不可信；投资走持牌金融机构官方渠道。"
+  },
+  {
+    channel:"短信", scene:"快递理赔", answer:"fraud",
+    text:"您的快递在运输中丢失，可申请理赔。请在链接中填写身份证号、银行卡号和短信验证码完成赔付。",
+    reason:"理赔不需要银行卡密码与验证码；索要这些信息是为了盗刷资金，链接多为钓鱼网站。",
+    tip:"防范：快递问题通过购物平台或快递公司官方渠道查询，不向第三方提供证件号、卡号和验证码。"
+  },
+  {
+    channel:"社交软件", scene:"网恋交友", answer:"fraud",
+    text:"我们以后要好好过日子，我发现一个理财平台收益不错，你也注册一点，咱们一起攒钱买房。",
+    reason:"先培养感情再引导到指定平台投资、赌博，是“杀猪盘”；所谓盈利都是后台伪造的。",
+    tip:"防范：网恋对象推荐投资、理财、博彩平台，立即停止往来；不见面、不转账。"
+  },
+  {
+    channel:"短信", scene:"中奖通知", answer:"fraud",
+    text:"恭喜您被节目组抽中为幸运观众，领取奖金需先缴纳保证金与个人所得税，缴费后即刻开奖兑付。",
+    reason:"合法领奖不会要求先交保证金、税费或手续费；先交钱再领奖是典型中奖骗局。",
+    tip:"防范：陌生中奖信息一律不回复、不缴费；官方活动不会以“先扣款”作为领奖前提。"
+  },
+  {
+    channel:"电话", scene:"会员扣费", answer:"fraud",
+    text:"您开通的视频会员将于明日自动扣费 800 元，如需取消，请按指引提供银行卡信息完成核验。",
+    reason:"主动来电称“自动扣费”并索要银行卡信息，是冒充客服诱导转账的常见套路；取消订阅应在官方 App 内操作。",
+    tip:"防范：不按来电指引提供卡号、验证码；自行打开对应 App 查看订阅与扣费记录。"
+  },
+  {
+    channel:"校园群", scene:"培训包就业", answer:"fraud",
+    text:"零基础包就业，先培训后还款，名额仅剩三个，报名即可领取内部贷款名额。",
+    reason:"以“包就业、低门槛”诱导办理培训贷款，课程与承诺往往无法兑现，是套路培训贷。",
+    tip:"防范：涉及贷款、分期缴费的培训先向学校老师或家长核实，不当场签协议、不扫收款码。"
+  },
+  {
+    channel:"官方 App", scene:"账单提醒", answer:"safe",
+    text:"您本期信用卡账单已出，可登录官方手机银行 App 查看明细与还款日。",
+    reason:"在官方 App 内推送的账单提醒，不要求点击外部链接、不索要密码或验证码，属于正常通知。",
+    tip:"核实方式：自行打开官方 App 查看，不要通过短信、聊天里的链接进入。"
+  },
+  {
+    channel:"单位通知", scene:"线下办事", answer:"safe",
+    text:"请于工作日到行政服务大厅办理相关业务，现场核验身份即可，本次办理不涉及任何转账缴费。",
+    reason:"线下办事通知不涉及汇款、不索取验证码，也没有“保密”要求，属于正常工作通知。",
+    tip:"如对通知有疑问，可向单位对接人或大厅电话核实后再前往。"
+  },
+  {
+    channel:"电商平台", scene:"物流通知", answer:"safe",
+    text:"您的订单已发货，物流进度可在平台订单页面实时查询。",
+    reason:"物流状态在平台订单页内可查，未引导跳转外部链接，也未索要个人敏感信息，属于正常消息。",
+    tip:"保持在官方平台内查看物流与售后，避免点进来路不明的“快递理赔”短信。"
+  },
+  {
+    channel:"运营商短信", scene:"话费提醒", answer:"safe",
+    text:"您本月话费余额不足，如需充值请通过官方营业厅或官方 App 办理。",
+    reason:"余额提醒未附带可疑链接，办理渠道指向官方营业厅，属于正常服务通知。",
+    tip:"充值前确认发送方为官方号码，不回复短信中的任何验证码。"
+  },
+  {
+    channel:"政务平台", scene:"社保年审", answer:"safe",
+    text:"社保中心提醒：您的社保卡待年审，可在官方政务服务平台线上提交材料办理。",
+    reason:"政务提醒指向官方平台，不索要密码与验证码，也不要求向个人账户转账，属于正常通知。",
+    tip:"办理前通过官方政务网或服务大厅确认入口，不轻信附带链接的“代办年审”消息。"
+  }
+];
+
+/* ==================== 数据：找破绽 ==================== */
+var SPOT = [
+  {
+    channel:"短信", scene:"仿冒银行",
+    text:"【XX银行】账户状态异常，请点击 http://xxx-abc.cn 完成核验，逾期将冻结；回复短信验证码即可解除限制。",
+    options:[
+      {label:"附带来路不明的外部链接", hit:true},
+      {label:"以逾期冻结制造紧迫感", hit:true},
+      {label:"要求提供短信验证码", hit:true},
+      {label:"提醒关注账户状态", hit:false}
+    ],
+    reason:"可疑外链、限时施压、索要验证码，三处都是钓鱼短信的典型破绽；正规核验不会通过回复验证码办理。",
+    tip:"防范：删掉短信，自行打开官方手机银行或拨打卡面客服电话核实账户状态。"
+  },
+  {
+    channel:"聊天群", scene:"刷单任务",
+    text:"点赞一单 5 元，先垫 100 元返 120 元；连做三单后解锁大额返利，群里很多人已经晒出收益截图。",
+    options:[
+      {label:"要求先垫资再返利", hit:true},
+      {label:"以“连单升级”诱导追加投入", hit:true},
+      {label:"用群内晒收益截图造势", hit:true},
+      {label:"按完成任务结算报酬", hit:false}
+    ],
+    reason:"垫资、连单、群内晒单造势，是刷单骗局逐步套牢受害者的标准节奏；晒图可批量伪造。",
+    tip:"防范：任何要求先充值、垫资的兼职都不要做，群里的“盈利截图”不能作为依据。"
+  },
+  {
+    channel:"电话", scene:"冒充执法",
+    text:"你名下账户涉嫌洗钱，此事必须保密，不能告诉家人；请把资金转入安全账户接受审查；我可以报工号供你回拨核实。",
+    options:[
+      {label:"要求对家人保密", hit:true},
+      {label:"提及所谓“安全账户”", hit:true},
+      {label:"以涉嫌犯罪进行恐吓", hit:true},
+      {label:"自称可以提供工号", hit:false}
+    ],
+    reason:"保密要求、安全账户、涉案恐吓是冒充公检法的核心破绽；工号也可随意编造，不能作为信任依据。",
+    tip:"防范：此类电话直接挂断，拨打 96110 或到就近派出所核实，绝不转账。"
+  },
+  {
+    channel:"社交软件", scene:"网恋引导投资",
+    text:"我在这个平台看到内幕行情，跟着我投稳赚不赔，先小额试试；我们以后结婚买房，一起把钱攒起来。",
+    options:[
+      {label:"推荐陌生投资平台", hit:true},
+      {label:"承诺“稳赚不赔”", hit:true},
+      {label:"以感情和未来规划作筹码", hit:true},
+      {label:"谈论共同的生活规划", hit:false}
+    ],
+    reason:"引导到外部平台、承诺保本高收益、用感情绑定投入，是杀猪盘的典型组合；生活规划本身不是破绽。",
+    tip:"防范：网恋对象一谈投资、博彩就停止往来，不下载对方给的平台，不转账。"
+  }
+];
+
+var CODEX = [
+  { title:"刷单返利", icon:"M3 17l6-6 4 4 8-8", feat:"<b>特征：</b>小额返利诱信任，垫资连单骗充值。", guard:"凡是“点赞刷单、垫付返利”的兼职都不做。" },
+  { title:"冒充公检法", icon:"M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z", feat:"<b>特征：</b>恐吓涉嫌犯罪，要求转入“安全账户”。", guard:"公检法没有安全账户，不转账、先挂断。" },
+  { title:"冒充客服退款", icon:"M4 5h16v11H4z", feat:"<b>特征：</b>主动来电称订单异常，引导脱离平台并共享屏幕。", guard:"退款只在平台内办理，不开屏幕共享、不给验证码。" },
+  { title:"虚假投资", icon:"M4 19V9m6 10V5m6 14v-7", feat:"<b>特征：</b>群内“导师”带单，前期小赚，大额投入后无法提现。", guard:"陌生推荐的投资平台不碰，走持牌机构渠道。" },
+  { title:"冒充领导熟人", icon:"M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 4-6 8-6s8 2 8 6", feat:"<b>特征：</b>盗用头像昵称，先谈公事再开口借钱转账。", guard:"转账前当面或用已知电话二次核实。" },
+  { title:"杀猪盘", icon:"M12 21s-7-5.5-7-10a7 7 0 0114 0c0 4.5-7 10-7 10z", feat:"<b>特征：</b>先网恋培养感情，再引导到指定平台投资博彩。", guard:"网恋谈投资、博彩即警惕，不见面、不转账。" }
+];
+
+/* ==================== 状态 ==================== */
+var state = {
+  pool:[], idx:0, score:0, hearts:3, correct:0, combo:0,
+  answered:false, wrong:[], selected:[], running:false, best:loadBest()
+};
+
+function loadBest(){
+  try{ return parseInt(localStorage.getItem("antifraud_best") || "0",10) || 0; }
+  catch(e){ return 0; }
+}
+function saveBest(v){
+  try{ localStorage.setItem("antifraud_best", String(v)); }catch(e){}
+}
+
+/* ==================== 倒计时 ==================== */
+var timer = { raf:null, left:0, dur:0, last:0, running:false, onTimeout:null };
+function startTimer(dur, onTimeout){
+  stopTimer();
+  timer.dur = dur; timer.left = dur; timer.last = performance.now();
+  timer.onTimeout = onTimeout; timer.running = true;
+  timer.raf = requestAnimationFrame(tickTimer);
+}
+function tickTimer(ts){
+  if(!timer.running) return;
+  var dt = (ts - timer.last)/1000; timer.last = ts;
+  timer.left -= dt;
+  if(timer.left <= 0){
+    timer.left = 0; updateTimerUI(); stopTimer();
+    if(timer.onTimeout) timer.onTimeout();
+    return;
+  }
+  updateTimerUI();
+  timer.raf = requestAnimationFrame(tickTimer);
+}
+function stopTimer(){
+  timer.running = false;
+  if(timer.raf){ cancelAnimationFrame(timer.raf); timer.raf = null; }
+}
+function updateTimerUI(){
+  var fill = document.getElementById("timer-fill");
+  var pct = Math.max(0, timer.left/timer.dur*100);
+  fill.style.width = pct + "%";
+  fill.classList.toggle("low", timer.left <= 5);
+}
+document.addEventListener("visibilitychange", function(){
+  if(document.hidden){ stopTimer(); }
+  else if(state.running && !state.answered){
+    startTimer(Math.max(1, timer.left), timer.onTimeout);
+  }
+});
+
+/* ==================== 视图切换 ==================== */
+function showView(id){
+  var views = document.querySelectorAll(".view");
+  for(var i=0;i<views.length;i++){ views[i].classList.remove("active"); }
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+
+/* ==================== 首页渲染 ==================== */
+function renderCodex(){
+  var grid = document.getElementById("codex-grid");
+  grid.innerHTML = "";
+  CODEX.forEach(function(c){
+    var card = document.createElement("div");
+    card.className = "codex-card";
+    card.innerHTML =
+      '<div class="head">'+
+        '<div class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="'+c.icon+'"/></svg></div>'+
+        '<h3>'+c.title+'</h3>'+
+      '</div>'+
+      '<div class="feat">'+c.feat+'</div>'+
+      '<div class="guard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/></svg><span>'+c.guard+'</span></div>';
+    grid.appendChild(card);
+  });
+  document.getElementById("home-best").textContent = state.best;
+}
+
+/* ==================== 游戏流程 ==================== */
+function buildPool(){
+  var pool = [];
+  JUDGE.forEach(function(q){ pool.push({type:"judge", data:q}); });
+  SPOT.forEach(function(q){ pool.push({type:"spot", data:q}); });
+  for(var i=pool.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t = pool[i]; pool[i]=pool[j]; pool[j]=t;
+  }
+  return pool;
+}
+
+function startGame(){
+  state.pool = buildPool();
+  state.idx = 0; state.score = 0; state.hearts = 3; state.correct = 0;
+  state.combo = 0; state.wrong = []; state.answered = false;
+  state.running = true;
+  showView("view-game");
+  renderQuestion();
+}
+
+function currentItem(){ return state.pool[state.idx]; }
+
+function renderQuestion(){
+  state.answered = false;
+  state.selected = [];
+  var item = currentItem();
+  var q = item.data;
+
+  document.getElementById("hud-progress").textContent = (state.idx+1)+"/"+state.pool.length;
+  document.getElementById("hud-score").textContent = state.score;
+  document.getElementById("hud-combo").textContent = state.combo;
+  document.getElementById("meta-channel").textContent = q.channel;
+  document.getElementById("meta-scene").textContent = q.scene;
+  document.getElementById("msg-text").textContent = q.text;
+  document.getElementById("progress-fill").style.width = (state.idx/state.pool.length*100)+"%";
+  renderHearts();
+
+  var fb = document.getElementById("feedback");
+  fb.className = "feedback";
+  fb.style.display = "";
+
+  var verdict = document.getElementById("verdict");
+  var spotArea = document.getElementById("spot-area");
+
+  if(item.type === "judge"){
+    verdict.style.display = "grid";
+    spotArea.style.display = "none";
+    document.getElementById("meta-mode").textContent = "真假判断";
+    var btns = document.querySelectorAll("#verdict button");
+    for(var i=0;i<btns.length;i++){ btns[i].disabled = false; }
+    startTimer(20, function(){ answerJudge(null); });
+  }else{
+    verdict.style.display = "none";
+    spotArea.style.display = "block";
+    document.getElementById("meta-mode").textContent = "火眼金睛";
+    renderSpotOptions(q);
+    startTimer(28, function(){ answerSpot(true); });
+  }
+}
+
+function renderHearts(){
+  var box = document.getElementById("hud-hearts");
+  box.innerHTML = "";
+  for(var i=0;i<3;i++){
+    var lost = i >= state.hearts;
+    box.innerHTML += '<svg class="heart'+(lost?" lost":"")+'" viewBox="0 0 24 24" fill="'+(lost?"none":"var(--red)")+'" stroke="var(--red)" stroke-width="2"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.5-7 10-7 10z"/></svg>';
+  }
+}
+
+/* ---- 真假判断 ---- */
+function answerJudge(choice){
+  if(state.answered) return;
+  state.answered = true;
+  stopTimer();
+  var q = currentItem().data;
+  var right = choice !== null && choice === q.answer;
+  lockVerdictButtons();
+  settle(right, q, choice === "fraud" ? "判定为诈骗" : (choice === "safe" ? "判定为正常" : "超时未判断"));
+}
+
+function lockVerdictButtons(){
+  var btns = document.querySelectorAll("#verdict button");
+  for(var i=0;i<btns.length;i++){ btns[i].disabled = true; }
+}
+
+/* ---- 找破绽 ---- */
+function renderSpotOptions(q){
+  var box = document.getElementById("spot-options");
+  box.innerHTML = "";
+  q.options.forEach(function(opt, i){
+    var chip = document.createElement("button");
+    chip.className = "spot-chip";
+    chip.setAttribute("data-i", i);
+    chip.innerHTML =
+      '<span class="box"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#062118" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>'+
+      '<span>'+opt.label+'</span>';
+    chip.addEventListener("click", function(){
+      if(state.answered) return;
+      var pos = state.selected.indexOf(i);
+      if(pos >= 0){ state.selected.splice(pos,1); chip.classList.remove("selected"); }
+      else{ state.selected.push(i); chip.classList.add("selected"); }
+    });
+    box.appendChild(chip);
+  });
+  document.getElementById("btn-spot-submit").disabled = false;
+}
+
+function answerSpot(timeout){
+  if(state.answered) return;
+  state.answered = true;
+  stopTimer();
+  var q = currentItem().data;
+
+  var hitSet = [];
+  q.options.forEach(function(opt,i){ if(opt.hit) hitSet.push(i); });
+  var right = !timeout &&
+    state.selected.length === hitSet.length &&
+    hitSet.every(function(i){ return state.selected.indexOf(i) >= 0; });
+
+  // 标记选项正误
+  var chips = document.querySelectorAll(".spot-chip");
+  chips.forEach(function(chip){
+    var i = parseInt(chip.getAttribute("data-i"),10);
+    chip.disabled = true;
+    if(q.options[i].hit){ chip.classList.add("hit-right"); }
+    else if(state.selected.indexOf(i) >= 0){ chip.classList.add("hit-wrong"); }
+  });
+  document.getElementById("btn-spot-submit").disabled = true;
+
+  settle(right, q, timeout ? "超时未完成勾选" : "破绽识别" + (right ? "准确" : "有遗漏或误选"));
+}
+
+/* ---- 结算单题 ---- */
+function settle(right, q, actionLabel){
+  var fb = document.getElementById("feedback");
+  fb.style.display = "";
+  var title = document.getElementById("fb-title");
+  var reason = document.getElementById("fb-reason");
+  var tip = document.getElementById("fb-tip");
+
+  if(right){
+    state.correct++;
+    state.combo++;
+    var bonus = state.combo >= 2 ? 2 : 0;
+    state.score += 10 + bonus;
+    fb.className = "feedback show good";
+    title.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg> 判断正确，防线守住' + (bonus ? "（连击 +" + bonus + "）" : "");
+  }else{
+    state.hearts--;
+    state.combo = 0;
+    state.score = Math.max(0, state.score - 5);
+    state.wrong.push({ text:q.text, reason:q.reason, tip:q.tip, action:actionLabel });
+    fb.className = "feedback show bad";
+    title.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg> 判断失误，这条需要警惕';
+  }
+  reason.textContent = q.reason;
+  tip.innerHTML = "<b>防范要点：</b>" + q.tip;
+  document.getElementById("hud-score").textContent = state.score;
+  document.getElementById("hud-combo").textContent = state.combo;
+  renderHearts();
+
+  var nextBtn = document.getElementById("btn-next");
+  nextBtn.textContent = (state.hearts <= 0 || state.idx === state.pool.length-1) ? "查看结果" : "下一条";
+}
+
+function nextStep(){
+  if(state.hearts <= 0){ finishGame(); return; }
+  state.idx++;
+  if(state.idx >= state.pool.length){ finishGame(); return; }
+  renderQuestion();
+}
+
+/* ==================== 结算 ==================== */
+function finishGame(){
+  state.running = false;
+  stopTimer();
+  var total = state.pool.length;
+  var acc = Math.round(state.correct/total*100);
+  if(state.score > state.best){ state.best = state.score; saveBest(state.best); }
+
+  var rank, desc;
+  if(acc >= 90){ rank="金牌反诈卫士"; desc="火眼金睛，常见骗局几乎都逃不过你的判断。"; }
+  else if(acc >= 70){ rank="反诈骨干"; desc="识别能力不错，个别伪装较深的套路还可以再留意。"; }
+  else if(acc >= 50){ rank="反诈新兵"; desc="已经掌握基础判断，建议回到图鉴巩固一下高发骗局特征。"; }
+  else { rank="重点学习对象"; desc="容易被话术带偏，请认真阅读图鉴要点，遇事先核实再操作。"; }
+
+  document.getElementById("result-title").textContent = rank;
+  document.getElementById("result-desc").textContent = desc;
+  document.getElementById("result-score").textContent = state.score;
+  document.getElementById("result-acc").textContent = acc+"%";
+  document.getElementById("result-best").textContent = state.best;
+  document.getElementById("rank-badge").innerHTML =
+    '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="1.6"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4" stroke="var(--green)"/></svg>';
+
+  renderReview();
+  showView("view-result");
+}
+
+function renderReview(){
+  var box = document.getElementById("review");
+  if(state.wrong.length === 0){
+    box.innerHTML = '<h3>错题回顾</h3><div class="review-empty">本局全部判断正确，没有需要回看的题目。</div>';
+    return;
+  }
+  var html = '<h3>错题回顾（' + state.wrong.length + ' 条）</h3>';
+  state.wrong.forEach(function(w){
+    html +=
+      '<div class="review-item">'+
+        '<div class="ri-title">'+w.text+'</div>'+
+        '<div class="ri-reason">你的操作：'+w.action+'。'+w.reason+'</div>'+
+        '<div class="ri-tip">'+w.tip+'</div>'+
+      '</div>';
+  });
+  box.innerHTML = html;
+}
+
+/* ==================== 事件绑定 ==================== */
+document.getElementById("btn-start").addEventListener("click", startGame);
+document.getElementById("btn-retry").addEventListener("click", startGame);
+document.getElementById("btn-home").addEventListener("click", function(){ state.running=false; stopTimer(); renderCodex(); showView("view-home"); });
+document.getElementById("btn-codex").addEventListener("click", function(){
+  var codex = document.getElementById("codex");
+  var top = codex.getBoundingClientRect().top + window.pageYOffset - 12;
+  window.scrollTo({top:top, behavior:"smooth"});
+});
+document.getElementById("btn-fraud").addEventListener("click", function(){ answerJudge("fraud"); });
+document.getElementById("btn-safe").addEventListener("click", function(){ answerJudge("safe"); });
+document.getElementById("btn-spot-submit").addEventListener("click", function(){ answerSpot(false); });
+document.getElementById("btn-next").addEventListener("click", nextStep);
+
+renderCodex();
+</script>
+</body>
+</html>
