@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <link rel="icon" href="data:,">
+    <title>知学刷题平台</title>
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+  <body>
+    <div id="app">
+      <div class="mobile-app">
+        <div class="mobile-header row between">
+          <div class="row grow">
+            <span v-if="页面 === '首页'" class="brand-mark">知</span>
+            <button v-else-if="!导航.some(项目 => 项目.名称 === 页面)" class="icon-btn" role="button" tabindex="0" aria-label="返回" @click="返回"><span class="图标" aria-hidden="true">{{ 图标.返回 }}</span></button>
+            <span class="title">{{ 页面标题[页面] || 页面 }}</span>
+          </div>
+          <span v-if="页面 === '答题'" class="small blue strong">{{ 当前练习 && 当前练习.截止时间 ? '剩余' : '用时' }} {{ 答题计时 }}</span>
+          <span v-if="页面 === '答案解析'" class="small muted">{{ 位置 + 1 }} / {{ 当前练习.题号.length }}</span>
+        </div>
+        <div v-if="页面 === '答题'" class="progress"><div class="progress-fill" :style="{ width: (位置 + 1) / 当前练习.题号.length * 100 + '%' }"></div></div>
+        <div class="mobile-content" :class="{ 'quiz-content': ['答题', '答案解析'].includes(页面) }">
+          <div v-if="错误" class="error-box" role="alert">{{ 错误 }}</div>
+          <div v-if="提示" class="notice mb" role="status">{{ 提示 }}</div>
+
+          <template v-if="页面 === '首页' || 页面 === '搜索题目'">
+            <div class="search-bar">
+              <span class="图标 muted" aria-hidden="true">{{ 图标.搜索 }}</span>
+              <input ref="搜索输入" v-model="关键词" aria-label="题目、科目或知识点" placeholder="搜索题目、科目或知识点" @keyup.enter="搜索">
+              <button class="text-btn" role="button" tabindex="0" @click="搜索">搜索</button>
+            </div>
+          </template>
+
+          <template v-if="页面 === '首页'">
+            <div class="home-resume card">
+              <div class="small muted">{{ 最近草稿 ? '继续上次练习' : '开始今天的练习' }}</div>
+              <div class="h3">{{ 最近草稿 ? 科目名称(最近草稿.科目) : '选一科，开始刷题' }}</div>
+              <div v-if="最近草稿" class="row between">
+                <span class="small muted">已答 {{ 已答数(最近草稿) }} / {{ 最近草稿.题号.length }} 题</span>
+                <button class="btn primary sm" role="button" tabindex="0" @click="打开练习(最近草稿.编号)">继续答题</button>
+              </div>
+              <div v-else class="small muted">选下方题库，交卷后查看答案与解析。</div>
+            </div>
+            <div class="home-stats">
+              <div class="card"><div class="small muted">今日刷题</div><div class="stat-value">{{ 统计.今日总题 }}<span> 题</span></div></div>
+              <div class="card"><div class="small muted">正确率</div><div class="stat-value">{{ 统计.今日正确率 }}<span> %</span></div></div>
+              <button class="card" role="button" tabindex="0" @click="切换页面('错题本')"><div class="small muted">待巩固错题</div><div class="stat-value red">{{ 错题列表.length }}<span> 道 ›</span></div></button>
+            </div>
+            <div class="section-title"><span class="h2 serif">题库分类</span><span class="small muted">{{ 分类.length }} 大类 · {{ 科目.length }} 个科目</span></div>
+            <div v-for="类别 in 分类" :key="类别" class="home-category">
+              <div class="small muted">{{ 类别 }}</div>
+              <div class="home-subject-grid">
+                <button v-for="subject in 科目.filter(项 => 项.分类 === 类别)" :key="subject.编号" class="card home-subject" role="button" tabindex="0" @click="选择科目(subject)">
+                  <div>{{ subject.名称 }}</div><div class="small muted">{{ subject.总题 }} 题 · 已练 {{ subject.总题 ? Math.round(subject.已练 / subject.总题 * 100) : 0 }}%</div>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <template v-else-if="页面 === '科目题库'">
+            <div class="eyebrow">本地题库</div><div class="h1 serif">{{ 当前科目.名称 }}</div>
+            <div class="small muted">{{ 当前科目.总题 }} 道题 · 已练 {{ 当前科目.已练 }} 题</div>
+            <div class="section-title"><span class="h3">选择练习模式</span></div>
+            <div class="mode-grid">
+              <button v-for="(label, mode) in 模式" :key="mode" class="mode-card" :class="{ active: 练习方式 === mode }" role="button" tabindex="0" :aria-pressed="练习方式 === mode" @click="练习方式 = mode">{{ label }}</button>
+            </div>
+            <div class="notice mt">{{ 练习方式 === 'exam' ? '模拟考试限时 120 分钟，到时按已保存答案交卷。' : 练习方式 === 'wrong' ? '从本科目错题本选题，重新巩固。' : '进度自动保存在当前浏览器，可以随时回来继续。' }}</div>
+            <div class="section-title"><span class="h3">题型与题量</span></div>
+            <div class="chips">
+              <button v-for="(label, kind) in { all: '全部题型', ...题型 }" :key="kind" class="chip" :class="{ active: (练习方式 === 'wrong' ? 'all' : 选择题型) === kind }" :disabled="练习方式 === 'wrong'" :aria-disabled="练习方式 === 'wrong'" role="button" tabindex="0" @click="选择题型 = kind">{{ label }}</button>
+            </div>
+            <div class="row between mb"><span>本次题数（1–30）</span><input ref="题量输入" v-model="题量" class="input 题量" type="number" aria-label="本次题数"></div>
+            <button class="btn primary full" role="button" tabindex="0" @click="开始练习({ 科目: 当前科目.编号 })">开始练习</button>
+            <div class="section-title"><span class="h2 serif">章节目录</span><span class="small muted">{{ 当前科目.章节.length }} 章</span></div>
+            <div v-for="chapter in 当前科目.章节" :key="chapter.编号" class="chapter row">
+              <div class="grow"><div class="strong">{{ chapter.名称 }}</div><div class="small muted">已练 {{ chapter.已练 }} / {{ chapter.总题 }} 题</div></div>
+              <button class="text-btn" :disabled="!chapter.总题" :aria-disabled="!chapter.总题" role="button" tabindex="0" @click="开始练习({ 科目: 当前科目.编号, 章节: chapter.编号, 方式: 'seq', 类型: 'all' })">去练习</button>
+            </div>
+          </template>
+
+          <template v-else-if="['答题', '答案解析'].includes(页面) && 当前题目">
+            <div class="question-meta">
+              <span class="tag blue">{{ 题型[当前题目.题型] }}</span>
+              <span v-if="页面 === '答题'" class="tag">{{ 当前题目.难度 }}</span>
+              <span v-else class="tag" :class="当前明细.答对 ? 'green' : 'red'">{{ 当前明细.答对 ? '回答正确' : 当前选项.length ? '回答错误' : '未作答' }}</span>
+              <span class="grow"></span><span v-if="页面 === '答题'" class="small muted">{{ 位置 + 1 }} / {{ 当前练习.题号.length }}</span>
+            </div>
+            <div v-if="页面 === '答题'" class="small muted mb">{{ 科目名称(当前题目.科目) }} · {{ 模式[当前练习.方式] }}</div>
+            <div class="question-stem">{{ 当前题目.题干 }}</div>
+            <div class="options">
+              <button v-for="option in 当前题目.选项" :key="option.字母" class="option" :class="选项样式(option.字母)" :disabled="页面 !== '答题'" :aria-disabled="页面 !== '答题'" :aria-pressed="当前选项.includes(option.字母)" role="button" tabindex="0" @click="选择答案(option.字母)">
+                <span class="option-key">{{ option.字母 }}</span><span class="option-copy">{{ option.内容 }}</span>
+                <span v-if="页面 === '答案解析' && 当前题目.答案.includes(option.字母)" class="option-status" aria-label="正确选项">✓</span>
+              </button>
+            </div>
+            <template v-if="页面 === '答题'">
+              <div class="small muted mt">{{ 当前题目.题型 === 'multi' ? '多选题：全部匹配才得分。' : '请选择一个正确选项。' }}</div>
+              <div class="row between mt">
+                <button class="text-btn" :class="{ orange: 当前练习.标记.includes(当前题目.编号) }" role="button" tabindex="0" @click="切换标记"><span class="图标" aria-hidden="true">{{ 图标.标记 }}</span> {{ 当前练习.标记.includes(当前题目.编号) ? '已标记' : '标记此题' }}</button>
+                <span v-if="!错误" class="tiny muted">进度保存在本机</span>
+              </div>
+            </template>
+            <template v-else>
+              <div class="answer-summary"><span>正确答案 <span class="green strong">{{ 当前题目.答案.join('、') }}</span></span><span>你的答案 <span :class="当前明细.答对 ? 'green' : 'red'">{{ 当前选项.join('、') || '未答' }}</span></span></div>
+              <div class="chips"><span v-for="标签 in 当前题目.标签" :key="标签" class="tag">{{ 标签 }}</span></div>
+              <div class="review-block"><div class="h3 mb">题目解析</div><div class="解析内容">{{ 当前题目.解析 || '暂无题库解析。' }}</div></div>
+            </template>
+          </template>
+
+          <template v-else-if="页面 === '练习结果' && 当前练习 && 当前练习.结果">
+            <div class="text-center">
+              <div class="score-ring"><span class="score">{{ 当前练习.结果.得分 }}</span><span class="small muted">本次得分</span></div>
+              <div class="result-title serif">{{ 当前练习.结果.错误 ? '练习已完成' : '这次练习，全部答对' }}</div>
+              <div class="small muted">{{ 科目名称(当前练习.科目) }} · {{ 模式[当前练习.方式] }}</div>
+            </div>
+            <div class="card stats mt">
+              <div><div class="number green">{{ 当前练习.结果.正确 }}</div><div class="label">答对</div></div>
+              <div><div class="number red">{{ 当前练习.结果.错误 }}</div><div class="label">答错 / 未答</div></div>
+              <div><div class="number">{{ 计时(当前练习.结果.用时) }}</div><div class="label">本次用时</div></div>
+            </div>
+            <div class="section-title"><span class="h2 serif">答题情况</span><span class="small muted">点题号看解析</span></div>
+            <div class="answer-grid"><button v-for="(detail, index) in 当前练习.结果.明细" :key="detail.编号" class="answer-cell" :class="detail.答对 ? 'correct' : 'incorrect'" :aria-label="'第 ' + (index + 1) + ' 题，' + (detail.答对 ? '答对' : '答错或未答')" role="button" tabindex="0" @click="查看解析(index)">{{ index + 1 }}</button></div>
+            <div v-if="当前练习.结果.错误" class="notice">答错和未答的题目已自动加入错题本。</div>
+            <button class="btn primary full mt" role="button" tabindex="0" @click="查看解析(0)">查看答案与解析</button>
+            <button class="btn full mt" role="button" tabindex="0" @click="切换页面('首页')">返回首页</button>
+          </template>
+
+          <template v-else-if="['错题本', '练习记录', '搜索题目'].includes(页面)">
+            <template v-if="页面 === '错题本'">
+              <div class="eyebrow">LEARN FROM MISTAKES</div><div class="h1 serif">我的错题</div>
+              <div class="small muted">把每个错因，变成下一次的把握。</div>
+              <div class="chips">
+                <button v-for="subject in [{ 编号: '', 名称: '全部科目' }, ...科目]" :key="subject.编号" class="chip" :class="{ active: 筛选科目 === subject.编号 }" role="button" tabindex="0" @click="筛选科目 = subject.编号; 页数 = 1">{{ subject.名称 }}</button>
+              </div>
+            </template>
+            <template v-else-if="页面 === '练习记录'"><div class="h1 serif">练习记录</div><div class="small muted mb">查看结果，或继续还未交卷的练习。</div></template>
+            <div class="row between mb">
+              <span class="small muted">共 {{ 列表.length }} {{ 页面 === '练习记录' ? '次练习' : '道题' }}</span>
+              <button v-if="页面 === '错题本'" class="text-btn" role="button" tabindex="0" @click="刷新记录">刷新</button>
+            </div>
+            <div v-if="!列表.length" class="empty">
+              <span class="图标 空图标" aria-hidden="true">{{ 图标.题库 }}</span>
+              <div class="h3">{{ 页面 === '搜索题目' ? '暂时没有匹配的题目' : '这里还没有记录' }}</div>
+              <div class="small">{{ 页面 === '搜索题目' ? '试试科目名称或更短的关键词。' : '先完成一次练习，再回来看看。' }}</div>
+              <button class="btn full mt" role="button" tabindex="0" @click="切换页面('首页')">去题库练习</button>
+            </div>
+            <div v-for="item in 列表.slice(0, 页数 * 15)" :key="item.编号" class="card list-question">
+              <template v-if="页面 === '练习记录'">
+                <div class="row between"><span class="h3">{{ 科目名称(item.科目) }}</span><span class="tag" :class="item.结果 ? 'green' : 'blue'">{{ item.结果 ? '已完成' : '进行中' }}</span></div>
+                <div class="small muted mt">{{ 模式[item.方式] }} · {{ 时间文字(item.开始时间) }}</div>
+                <div class="row between mt">
+                  <span class="small">{{ item.结果 ? item.结果.得分 + ' 分 · 答对 ' + item.结果.正确 + '/' + item.题号.length + ' 题' : '已答 ' + 已答数(item) + '/' + item.题号.length + ' 题' }}</span>
+                  <button class="text-btn" role="button" tabindex="0" @click="打开练习(item.编号)">{{ item.结果 ? '查看结果' : '继续练习' }}</button>
+                </div>
+              </template>
+              <template v-else>
+                <div class="row between"><span class="tag blue">{{ 题型[item.题型] }}</span><span class="tiny muted">{{ 科目名称(item.科目) }}</span></div>
+                <div class="stem">{{ item.题干 }}</div>
+                <div class="row between">
+                  <span v-if="页面 === '错题本'" class="small red">累计错 {{ 记录.错题[item.编号].次数 }} 次</span><span v-else class="small muted">{{ item.标签.join(' · ') }}</span>
+                  <button class="text-btn" role="button" tabindex="0" @click="开始练习({ 科目: item.科目, 单题: item.编号, 方式: 页面 === '错题本' ? 'wrong' : 'seq', 类型: 'all', 题数: 1 })">{{ 页面 === '错题本' ? '重练此题' : '练习此题' }}</button>
+                </div>
+                <div v-if="页面 === '错题本'" class="错题操作"><button class="text-btn muted" role="button" tabindex="0" @click="移出错题(item)">移出错题本</button></div>
+              </template>
+            </div>
+            <button v-if="页数 * 15 < 列表.length" class="btn full" role="button" tabindex="0" @click="页数++">加载更多</button>
+          </template>
+
+          <template v-else-if="页面 === '个人中心'">
+            <div class="card stats">
+              <div><div class="number">{{ 统计.次数 }}</div><div class="label">累计练习</div></div>
+              <div><div class="number">{{ 统计.天数 }}</div><div class="label">学习天数</div></div>
+              <div><div class="number">{{ 统计.正确率 }}<span class="unit">%</span></div><div class="label">正确率</div></div>
+            </div>
+            <div class="menu-list">
+              <button role="button" tabindex="0" @click="切换页面('错题本')"><span class="图标" aria-hidden="true">{{ 图标.错题本 }}</span><span class="grow">我的错题</span><span class="muted small">{{ 错题列表.length }}</span><span class="图标 muted" aria-hidden="true">{{ 图标.前进 }}</span></button>
+              <button role="button" tabindex="0" @click="切换页面('练习记录')"><span class="图标" aria-hidden="true">{{ 图标.历史 }}</span><span class="grow">练习记录</span><span class="图标 muted" aria-hidden="true">{{ 图标.前进 }}</span></button>
+            </div>
+            <div class="notice">练习和错题仅保存在当前浏览器，不跨设备同步。</div>
+            <button class="btn 危险文字 full mt" :disabled="不能清空" :aria-disabled="不能清空" role="button" tabindex="0" @click="确认清空">清空本地记录</button>
+          </template>
+        </div>
+
+        <div v-if="导航.some(项目 => 项目.名称 === 页面)" class="bottom-tabs">
+          <button v-for="tab in 导航" :key="tab.名称" class="导航按钮" :class="{ active: 页面 === tab.名称 }" :aria-current="页面 === tab.名称 ? 'page' : undefined" role="button" tabindex="0" @click="切换页面(tab.名称)"><span class="图标" aria-hidden="true">{{ 图标[tab.名称] }}</span><span>{{ tab.名称 }}</span></button>
+        </div>
+
+        <div v-if="页面 === '答题'" class="quiz-bar">
+          <div class="row"><button class="text-btn" role="button" tabindex="0" @click="打开答题卡"><span class="图标" aria-hidden="true">{{ 图标.题库 }}</span> 答题卡 {{ 已答数(当前练习) }}/{{ 当前练习.题号.length }}</button></div>
+          <div class="row">
+            <button class="btn" :disabled="位置 === 0" :aria-disabled="位置 === 0" role="button" tabindex="0" @click="跳题(位置 - 1)">上一题</button>
+            <button v-if="位置 < 当前练习.题号.length - 1" class="btn primary" role="button" tabindex="0" @click="跳题(位置 + 1)">下一题</button>
+            <button v-else class="btn primary" role="button" tabindex="0" @click="请求交卷">交卷</button>
+          </div>
+        </div>
+
+        <div v-if="页面 === '答案解析'" class="quiz-bar row">
+          <button class="btn" :disabled="位置 === 0" :aria-disabled="位置 === 0" role="button" tabindex="0" @click="查看解析(位置 - 1)">上一题</button>
+          <button class="btn" :disabled="位置 === 当前练习.题号.length - 1" :aria-disabled="位置 === 当前练习.题号.length - 1" role="button" tabindex="0" @click="查看解析(位置 + 1)">下一题</button>
+        </div>
+
+        <dialog id="答题卡弹窗" class="答题卡弹窗" aria-labelledby="答题卡标题">
+          <div class="row between"><span id="答题卡标题" class="h2 serif">答题卡</span><button class="text-btn" role="button" tabindex="0" autofocus @click="关闭答题卡">关闭</button></div>
+          <template v-if="当前练习 && 页面 === '答题'">
+            <div class="small muted">已答 {{ 已答数(当前练习) }} / {{ 当前练习.题号.length }} · 橙点表示已标记</div>
+            <div class="answer-grid">
+              <button v-for="(questionId, index) in 当前练习.题号" :key="questionId" class="answer-cell" :class="{ answered: 当前练习.作答[questionId] && 当前练习.作答[questionId].length, current: 位置 === index, marked: 当前练习.标记.includes(questionId) }" role="button" tabindex="0" @click="跳题(index); 关闭答题卡()">{{ index + 1 }}</button>
+            </div>
+            <button class="btn primary full" role="button" tabindex="0" @click="关闭答题卡(); 请求交卷()">交卷并查看结果</button>
+          </template>
+        </dialog>
+
+        <dialog id="确认弹窗" class="确认弹窗" aria-labelledby="确认标题" aria-describedby="确认说明" @close="确认动作 = null">
+          <div id="确认标题" class="h2 serif">{{ 弹窗.标题 }}</div>
+          <div id="确认说明" class="弹窗说明">{{ 弹窗.说明 }}</div>
+          <div class="row between">
+            <button id="取消操作" class="btn" role="button" tabindex="0" autofocus @click="关闭确认">取消</button>
+            <button class="btn" :class="弹窗.危险 ? '危险按钮' : 'primary'" role="button" tabindex="0" @click="执行确认">{{ 弹窗.按钮 }}</button>
+          </div>
+        </dialog>
+      </div>
+    </div>
+    <script src="static/vue.global.prod.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/logic.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
